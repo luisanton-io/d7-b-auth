@@ -7,7 +7,6 @@ export default class ErrorResponse extends Error {
 
 }
 
-
-export const isErrorResponse = (error: any): error is ErrorResponse => {
+export const isErrorResponse = (error: Error): error is ErrorResponse => {
   return error.hasOwnProperty("httpStatusCode")
 }
