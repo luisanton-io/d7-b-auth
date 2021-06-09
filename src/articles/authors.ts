@@ -1,7 +1,8 @@
-import express from "express";
-import AuthorSchema from "../schemas/authors.js";
-import ErrorResponse from "../lib/errorResponse.js";
-import { basicAuthMiddleware } from "../auth/index.js";
+import express, { Request, Response, NextFunction } from "express";
+import AuthorSchema from "../schemas/authors";
+import ErrorResponse from "../lib/errorResponse";
+import { basicAuthMiddleware } from "../auth";
+import { Author, AuthorizedRequest } from "../typings";
 
 const authorRouter = express.Router();
 
@@ -33,13 +34,20 @@ authorRouter.post("/register", async (req, res, next) => {
   }
 });
 
-authorRouter.put("/me", basicAuthMiddleware, async (req, res, next) => {
+authorRouter.put("/me", basicAuthMiddleware, async <T extends Partial<Author>>(req: AuthorizedRequest<T>, res: Response, next: NextFunction) => {
   try {
-    const updates = Object.keys(req.body);
+    // Type assertion: making sure that the req.body gets processed *as* an array of 
+    // strings which are keys [keyof] the Author interface
+    // i.e. "role", "_id", etc
 
-    updates.forEach((u) => (req.user[u] = req.body[u]));
+    const updates = Object.keys(req.body) as (keyof Author)[]
 
-    await req.user.save();
+    // If you try commenting the type assertion: it will complain that 
+    // 'string' can't be used to index type 'AuthorPrivate & Document<any, {}>',
+    // which is the type of our user in the body.
+    updates.forEach((u) => (req.body.user[u] = req.body[u]));
+
+    await req.body.user.save();
 
     res.status(204).send();
   } catch (error) {
@@ -51,7 +59,7 @@ authorRouter.get("/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
     const author = await AuthorSchema.findById(id).populate("articles");
-    if (!author) return next(new ErrorResponse(`id not found`, 404));
+    if (!author) return next(new ErrorResponse(404, `id not found`));
     res.status(200).send({ author });
   } catch (error) {
     next(error);

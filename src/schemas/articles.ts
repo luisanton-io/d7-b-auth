@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import ReviewSchema from "./Reviews.js";
+import ReviewSchema from "./reviews";
 
 const { Schema, model } = mongoose;
 
@@ -28,21 +28,13 @@ const ArticleSchema = new Schema(
       },
       img: {
         type: String,
-        required: true,
         trim: true,
       },
     },
-    author: {
-      name: {
-        type: String,
-        required: true,
-        trim: true,
-      },
-      img: {
-        type: String,
-        required: true,
-        trim: true,
-      },
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Author",
+      required: true,
     },
     cover: {
       type: String,

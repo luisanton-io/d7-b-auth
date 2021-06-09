@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { Author, AuthorModel, AuthorPrivate, AuthorPrivateDocument } from "../typings";
+import Override from "../typings/utils/override";
 const { Schema, model } = mongoose;
 
-const AuthorSchema = new Schema(
+const AuthorSchema = new Schema<AuthorPrivateDocument, AuthorModel>(
   {
     firstName: {
       type: String,
@@ -40,19 +42,19 @@ const AuthorSchema = new Schema(
   { timestamps: true }
 );
 
-AuthorSchema.static("findAuthorWithArticles", async function (id) {
+AuthorSchema.static("findAuthorWithArticles", async function (id: string) {
   const author = await this.findById(id).populate("articles");
   return author;
 });
 
-AuthorSchema.pre("save", async function (next) {
+AuthorSchema.pre("save", async function (this: AuthorPrivateDocument, next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
   next();
 });
 
-AuthorSchema.statics.checkCredentials = async function (email, pw) {
+AuthorSchema.statics.checkCredentials = async function (email: string, pw: string) {
   const user = await this.findOne({ email });
   if (user) {
     console.log(user);
@@ -67,9 +69,11 @@ AuthorSchema.methods.toJSON = function () {
 
   const userObject = user.toObject();
 
-  delete userObject.password;
-  delete userObject.__v;
-  return userObject;
+  const _userObject: Override<AuthorPrivate, { password?: string, __v?: string }> = Object.assign({}, userObject)
+
+  delete _userObject.password;
+  delete _userObject.__v;
+  return _userObject as Author;
 };
 
 export default model("Author", AuthorSchema);
