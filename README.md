@@ -1,3 +1,3 @@
-# m6-d2-server
+# m8-d7-server
 
 
