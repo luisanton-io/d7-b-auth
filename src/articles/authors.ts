@@ -34,7 +34,7 @@ authorRouter.post("/register", async (req, res, next) => {
   }
 });
 
-authorRouter.put("/me", basicAuthMiddleware, async <T extends Partial<Author>>(req: AuthorizedRequest<T>, res: Response, next: NextFunction) => {
+authorRouter.put("/me", basicAuthMiddleware, async (req: AuthorizedRequest<Partial<Author>>, res: Response, next: NextFunction) => {
   try {
     // Type assertion: making sure that the req.body gets processed *as* an array of 
     // strings which are keys [keyof] the Author interface
